@@ -1,0 +1,33 @@
+subprojects {
+    if (!project.name.contains('Quilt')) return;
+
+    apply plugin: 'org.quiltmc.loom'
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${minecraft_version}"
+        mappings loom.officialMojangMappings()
+
+        modImplementation "org.quiltmc:quilt-loader:${quilt_loader_version}"
+    }
+
+    loom {
+        runs {
+            client {
+                client()
+                setConfigName("${project.name} - Client")
+                ideConfigGenerated(true)
+                runDir('../../runs/client')
+            }
+            server {
+                server()
+                setConfigName("${project.name} - Server")
+                ideConfigGenerated(true)
+                runDir('../../runs/server')
+            }
+        }
+    }
+
+    processResources {
+        exclude "fabric.mod.json"
+    }
+}

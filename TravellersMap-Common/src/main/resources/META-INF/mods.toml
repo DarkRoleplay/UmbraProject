@@ -1,0 +1,15 @@
+modLoader="lowcodefml" #mandatory
+loaderVersion="[41,)" #mandatory
+license="All rights reserved"
+
+[[mods]] #mandatory
+modId="travellers_map" #mandatory
+version="${file.jarVersion}" #mandatory
+displayName="Travellers Map" #mandatory
+description=''
+[[dependencies.travellers_map]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.19,)"
+    ordering="NONE"
+    side="BOTH"

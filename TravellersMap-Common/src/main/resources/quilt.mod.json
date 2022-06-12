@@ -1,0 +1,33 @@
+{
+   "schema_version": 1,
+   "license": "ARR",
+   "quilt_loader": {
+      "group": "net.dark_roleplay",
+      "id": "travellers_map",
+      "version": "${version}",
+      "metadata": {
+         "name": "Travellers Map",
+         "description": "",
+         "contributors": {
+            "JTK222": "Owner"
+         },
+         "contact": {}
+      },
+      "intermediate_mappings": "net.fabricmc:intermediary",
+      "entrypoints": { },
+      "depends": [
+         {
+            "id": "minecraft",
+            "versions": ">=1.19"
+         },
+         {
+            "id": "java",
+            "versions": ">=17"
+         }
+      ]
+   },
+   "mixin": [
+      "travellers_map.mixins.json"
+   ]
+}
+  

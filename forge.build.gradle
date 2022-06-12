@@ -1,0 +1,57 @@
+subprojects {
+    if (!project.name.contains('Forge')) return;
+
+    def commonProject = project(":${project.name.split('-')[0]}-Common")
+
+    apply plugin: 'net.minecraftforge.gradle'
+
+    apply plugin: 'org.spongepowered.mixin'
+
+    dependencies {
+        minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+        annotationProcessor "org.spongepowered:mixin:${mixinVersion}:processor"
+    }
+
+    mixin {
+        add sourceSets.main, "${commonProject.mod_id}.mixins.refmap.json"
+        config "${commonProject.mod_id}.mixins.json"
+    }
+
+    minecraft {
+        mappings channel: 'official', version: minecraft_version
+
+        runs {
+            client {
+                workingDirectory rootProject.file('./runs/client')
+                ideaModule "${rootProject.name}.${project.name}.main"
+
+                taskName "-Client"
+                property 'mixin.env.remapRefMap', 'true'
+                property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+
+                mods {
+                    "${project.name}" {
+                        source sourceSets.main
+                    }
+                }
+            }
+
+            server {
+                workingDirectory rootProject.file('./runs/server')
+
+                ideaModule "${rootProject.name}.${project.name}.main"
+
+                taskName "-Server"
+                property 'mixin.env.remapRefMap', 'true'
+                property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+
+                mods {
+                    "${project.name}" {
+                        source sourceSets.main
+                    }
+                }
+            }
+        }
+    }
+}

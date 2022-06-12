@@ -1,0 +1,116 @@
+buildscript {
+    repositories {
+        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
+        maven {
+            name = 'Forge'
+            url = uri('https://maven.minecraftforge.net')
+        }
+        maven {
+            name = 'Fabric'
+            url = uri('https://maven.fabricmc.net/')
+        }
+        maven {
+            name = 'Sponge Snapshots'
+            url = uri('https://repo.spongepowered.org/repository/maven-public/')
+        }
+        maven {
+            name = 'Quilt'
+            url = uri('https://maven.quiltmc.org/repository/release')
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath 'org.spongepowered:mixingradle:0.7.+'
+    }
+}
+
+plugins {
+    id 'org.spongepowered.gradle.vanilla' version "${vanillaGradleVersion}" apply false
+    id 'com.matthewprenger.cursegradle' version "${curseGradleVersion}" apply false
+    // id 'com.modrinth.minotaur' version "${modrinthGradleVersion}" apply false
+    id 'org.quiltmc.loom' version "0.12.+" apply false
+}
+
+def Set<String> LOADERS = new HashSet<>(Arrays.asList(new String[]{"Forge", "Quilt", "Fabric"}))
+
+allprojects {
+    group = 'net.dark_roleplay'
+
+    repositories {
+        mavenCentral()
+        maven {
+            name = 'Sponge Snapshots'
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
+        }
+        maven {
+            name = 'Quilt'
+            url = 'https://maven.quiltmc.org/repository/release'
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+    dependencies {
+        compileOnly group: 'org.kohsuke.metainf-services', name: 'metainf-services', version: '1.9'
+        annotationProcessor group: 'org.kohsuke.metainf-services', name: 'metainf-services', version: '1.9'
+    }
+
+    if (LOADERS.stream().filter(loader -> project.name.endsWith(loader)).findAny().isPresent()) {
+        def parentProject = project.name.split("-")[0] + '-Common'
+        archivesBaseName = "${project.name}-${minecraft_version}-${version}"
+
+        apply plugin: 'com.matthewprenger.cursegradle'
+        //apply plugin: 'com.modrinth.minotaur'
+
+//        sourceSets {
+//            main {
+//                java {
+//                    compileClasspath += project(':' + parentProject).sourceSets.main.runtimeClasspath
+//                    runtimeClasspath += project(':' + parentProject).sourceSets.main.runtimeClasspath
+//                }
+//            }
+//        }
+
+        sourceSets.main.java.srcDirs = project(':' + parentProject).sourceSets.main.java.srcDirs
+        sourceSets.main.resources.srcDirs = project(':' + parentProject).sourceSets.main.resources.srcDirs
+        sourceSets.test.java.srcDirs = []
+        sourceSets.test.resources.srcDirs = []
+    }
+}
+
+apply from: 'common.build.gradle'
+apply from: 'forge.build.gradle'
+apply from: 'quilt.build.gradle'
+
+project(':TravellersMap-Common') {
+    addDep(project, project(':JustUtilities-Common'), 'just_utilities')
+}
+
+project(':TravellersMap-Forge') {
+    addDep(project, project(':JustUtilities-Forge'), 'just_utilities')
+}
+
+project(':TravellersMap-Quilt') {
+    addDep(project, project(':JustUtilities-Quilt'), 'just_utilities')
+}
+
+void addDep(org.gradle.api.Project main, org.gradle.api.Project dep, String modid){
+    if(main.name.contains('Common')){
+        main.dependencies.implementation dep
+    }else if(main.name.contains('Forge')){
+        main.dependencies.implementation dep
+        main.minecraft{ runs{ client{
+            arg "--mixin=${modid}.mixins.json"
+            mods{ JustUtilities { source dep.sourceSets.main }}
+        }}}
+    }else if(main.name.contains('Quilt')){
+        main.dependencies{
+            implementation project(path: ":${dep.name}", configuration: 'namedElements')
+        }
+    }
+}
